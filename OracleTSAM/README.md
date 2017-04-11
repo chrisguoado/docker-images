@@ -152,7 +152,7 @@ services:
       - db:db.box
 ```
 
-You may also run the TSAM container with the `oracle/database:11.2.0.2-xe` image provided in the [OracleDatabase](../OracleDatabase). Due to the `oracle/database:11.2.0.2-xe` container creates new database and generates random `sys` user password on startup, a little "hacking" is needed to make the `sys` password fixed. See the [xe-db-svc](samples/xe-db-svc) in the `samples` folder for more detail.
+You may also run the TSAM container with the `oracle/database:11.2.0.2-xe` image provided in the [OracleDatabase](../OracleDatabase). See the [xe-db-svc](samples/xe-db-svc) in the `samples` folder for more detail.
 
 ### Changing the database connection information to a running TSAM application
 The Oracle Database connection is managed in the Oracle WebLogic domain, under the datasource named `tsamds`. The TSAM application itself does not hold any database connection specific information, instead refers to the database through a JNDI named `jdbc/tsamds`.

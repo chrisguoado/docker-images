@@ -131,7 +131,6 @@ services:
   db:
     image: oracle-database-image
     hostname: db.box
-    shm_size: 2g
     ports:
       - 1521/tcp
   tsam:

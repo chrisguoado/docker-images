@@ -32,15 +32,29 @@ if [ -n "$DB_CONNSTR" ];then # external oracle database
   source ~/.dbinfo
   export DB_SID
 
-  COMMON_ARGS="-type oracle \
-    -hostname $DB_HOST \
-    -port $DB_PORT \
-    -dbname $DB_SID \
-    -user $DB_TSAM_USER \
-    -password $DB_TSAM_PASSWD \
-    -overwrite no \
-    -adminpassword $TSAM_CONSOLE_ADMIN_PASSWD \
-    -enable_partition $DB_ENABLE_PARTITION"
+  inv_info=$(/u01/oracle/oraHome/OPatch/opatch lsinv)
+  if [ "$DEBUG_MODE" = true ];then
+    echo "$inv_info"
+  fi
+  if [ -z "`echo $inv_info|grep 25832345`" ];then
+    COMMON_ARGS="-type oracle \
+      -hostname $DB_HOST \
+      -port $DB_PORT \
+      -dbname $DB_SID \
+      -user $DB_TSAM_USER \
+      -password $DB_TSAM_PASSWD \
+      -overwrite no \
+      -adminpassword $TSAM_CONSOLE_ADMIN_PASSWD \
+      -enable_partition $DB_ENABLE_PARTITION"
+  else
+    COMMON_ARGS="-type oracle \
+      -url jdbc:oracle:thin:@//$DB_CONNSTR \
+      -user $DB_TSAM_USER \
+      -password $DB_TSAM_PASSWD \
+      -overwrite no \
+      -adminpassword $TSAM_CONSOLE_ADMIN_PASSWD \
+      -enable_partition $DB_ENABLE_PARTITION"
+  fi
 
   if [ "$DEBUG_MODE" = true ];then
     echo $COMMON_ARGS
@@ -50,15 +64,20 @@ if [ -n "$DB_CONNSTR" ];then # external oracle database
     if [ -z "$TSAM_CONSOLE_ADMIN_PASSWD" ];then
       TSAM_CONSOLE_ADMIN_PASSWD=dummy;
     fi
-    ./DatabaseDeployer.sh $COMMON_ARGS
+    ./DatabaseDeployer.sh $COMMON_ARGS > /tmp/dbdeploy.log 2>&1
   else # DB_TYPE = new
     ./DatabaseDeployer.sh $COMMON_ARGS \
     -dbSysdbaUser $DBA_USER \
     -dbSysdbaPwd $DBA_PASSWD \
-    -tsamDbTablespace $DB_TSAM_TBLSPACE
+    -tsamDbTablespace $DB_TSAM_TBLSPACE > /tmp/dbdeploy.log 2>&1
+  fi
+  ret=$?
+
+  if [ "$DEBUG_MODE" = true ];then
+    cat /tmp/dbdeploy.log
   fi
 
-  if [ $? != 0 ];then
+  if [ $ret != 0 ];then
     echo "ERROR initializing TSAM Manager database, exit."
     exit_after_time
   fi
